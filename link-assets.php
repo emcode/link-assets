@@ -23,52 +23,52 @@ $realAssetsPath = realpath($baseAssetsPath);
 
 if (!is_string($realAssetsPath) || !is_dir($realAssetsPath))
 {
-  $message = sprintf('Base assets path is not a directory ' . PHP_EOL . 'source path: %s' . PHP_EOL . 'real path: %s', $baseAssetsPath, $realAssetsPath);
-  throw new \Exception($message);
+    $message = sprintf('Base assets path is not a directory ' . PHP_EOL . 'source path: %s' . PHP_EOL . 'real path: %s', $baseAssetsPath, $realAssetsPath);
+    throw new \Exception($message);
 }
 
-foreach($pathsMapping as $symlinkPath => $targetPath)
+foreach ($pathsMapping as $symlinkPath => $targetPath)
 {
-	$symlinkSource = $realAssetsPath . DS . $symlinkPath;
-	$symlinkParentPath = dirname($symlinkSource);
-	
-	if (!is_dir($symlinkParentPath))
-	{
-		$result = mkdir($symlinkParentPath, 0777, true);
+    $symlinkSource = $realAssetsPath . DS . $symlinkPath;
+    $symlinkParentPath = dirname($symlinkSource);
 
-    if (!$result)
+    if (!is_dir($symlinkParentPath))
     {
-        $message = sprintf('Creation of link parent path failed: ' . PHP_EOL . 'path to be created: %s' . PHP_EOL . 'occured on link: %s', $symlinkParentPath, $symlinkPath);
+        $result = mkdir($symlinkParentPath, 0777, true);
+
+        if (!$result)
+        {
+            $message = sprintf('Creation of link parent path failed: ' . PHP_EOL . 'path to be created: %s' . PHP_EOL . 'occured on link: %s', $symlinkParentPath, $symlinkPath);
+            throw new \Exception($message);
+        }
+
+        echo sprintf('Created symlink parent path: ' . PHP_EOL . '%s', $symlinkParentPath) . PHP_EOL;
+    }
+
+    if (is_link($symlinkSource))
+    {
+        echo sprintf('Target symlink already exists: ' . PHP_EOL . 'link: %s' . PHP_EOL . 'configured target: %s' . PHP_EOL . 'currently links to: %s', $symlinkSource, $targetPath, readlink($symlinkSource)) . PHP_EOL;
+        echo sprintf('Skipping item...') . PHP_EOL;
+        echo '---------------------------------' . PHP_EOL;
+        continue;
+    }
+
+    $realTargetPath = realpath($targetPath);
+
+    if (!is_string($realTargetPath) || !is_dir($realTargetPath))
+    {
+        $message = sprintf('Symlink target path is not directory or does not exists: ' . PHP_EOL . '%s', $realTargetPath);
         throw new \Exception($message);
     }
 
-		echo sprintf('Created symlink parent path: ' . PHP_EOL . '%s', $symlinkParentPath) . PHP_EOL;
-	}
-	
-	if (is_link($symlinkSource))
-	{
-		echo sprintf('Target symlink already exists: ' . PHP_EOL . 'link: %s' . PHP_EOL . 'configured target: %s' . PHP_EOL . 'currently links to: %s', $symlinkSource, $targetPath, readlink($symlinkSource)) . PHP_EOL;
-		echo sprintf('Skipping item...') . PHP_EOL;
-		echo '---------------------------------' . PHP_EOL;
-		continue;
-	}
-	
-	$realTargetPath = realpath($targetPath);
-	
-	if (!is_string($realTargetPath) || !is_dir($realTargetPath))
-	{
-		$message = sprintf('Symlink target path is not directory or does not exists: ' . PHP_EOL . '%s', $realTargetPath);
-	  throw new \Exception($message);
-	}
-	
-	$result = symlink($realTargetPath, $symlinkSource);
+    $result = symlink($realTargetPath, $symlinkSource);
 
-	if (!$result)
-  {    
-	  $message = sprintf('Creation of symlink failed: ' . PHP_EOL . 'from: %s' . PHP_EOL . 'to: %s', $symlinkSource, $realTargetPath);
-	  throw new \Exception($message);
-	}
-		
-  echo sprintf('Succesfully created symlink: ' . PHP_EOL . 'from: %s' . PHP_EOL . 'to: %s', $symlinkSource, $realTargetPath) . PHP_EOL;
-  echo '---------------------------------' . PHP_EOL;
+    if (!$result)
+    {
+        $message = sprintf('Creation of symlink failed: ' . PHP_EOL . 'from: %s' . PHP_EOL . 'to: %s', $symlinkSource, $realTargetPath);
+        throw new \Exception($message);
+    }
+
+    echo sprintf('Succesfully created symlink: ' . PHP_EOL . 'from: %s' . PHP_EOL . 'to: %s', $symlinkSource, $realTargetPath) . PHP_EOL;
+    echo '---------------------------------' . PHP_EOL;
 }
